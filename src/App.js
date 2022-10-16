@@ -1,25 +1,26 @@
-import logo from './logo.svg';
+import React, {useState} from "react";
 import './App.css';
+import Chat from './Components/Chat';
+
+const events = {
+   send_msg: 'send_msg',
+   receive_msg: 'receive_msg',
+   sync_msg: 'sync_msg',
+   join_room: 'join_room',
+   sync_user_info: 'sync_user_info'
+}
 
 function App() {
-  return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
-  );
+   const [token, setToken] = useState(null);
+
+
+   return (
+       <div className="App">
+          <header className="App-header">
+             <Chat/>
+          </header>
+       </div>
+   );
 }
 
 export default App;
