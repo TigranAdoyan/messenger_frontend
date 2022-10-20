@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useState } from "react";
 import io from 'socket.io-client';
+import useMessengerSocket from '../hooks/useMessengerSocket';
 
 const events = {
     send_message: 'send_message',
@@ -9,102 +10,34 @@ const events = {
     sync_user_info: 'sync_user_info'
 };
 
-const socket = io('http://localhost:3334/message', { auth:  { token: 'awdawd' } });
-
-socket.on('connect', () => {
-    console.log('socket connected');
-});
-
-socket.on('connect_error', err => {
-    console.log(err)
-});
-socket.on('connect_failed', err => {
-    console.log(err)
-});
-socket.on('disconnect', err => {
-    console.log(err)
-});
-
-
-
-
-
-function Chat() {
-    const [messagesList, setMessagesList] = useState([]);
-    const [currentMessage, setMessage] = useState('');
-    const [user, setUser] = useState({ username: '' });
-    const [currentRoom, setRoom] = useState('');
-
-    const onChange = useCallback((e) => {
-        if (e.target.name === 'message') {
-            setMessage(e.target.value);
-        } else if (e.target.name === 'room') {
-            setRoom(e.target.value);
-        }
-    }, [])
-
-    const onSubmit = useCallback((e) => {
-        if (e.type === 'click' || e.key === 'Enter') {
-            if (e.target.name === 'message') {
-                socket.emit(events.send_message, {
-                    message: currentMessage,
-                })
-            } else if (e.target.name === 'room') {
-                socket.emit(events.join_room, {
-                    room: currentRoom,
-                })
-            }
-        }
-    }, [currentMessage, currentRoom])
-
-    const _syncMessagesHandler = useCallback((messages) => {
-        setMessagesList(messages)
+function Chat({ userData }) {
+    const onSync = useCallback((data) => {
+        console.log(data);
     }, []);
 
-    const _syncUserInfoHandler = useCallback((user) => {
-        setUser(user)
-    }, []);
-
-    const _receiveHandler = useCallback((message) => {
-        setMessagesList(prevState => {
-            return [
-                ...prevState,
-                message
-            ]
-        })
-    }, []);
-
-    useEffect(() => {
-        socket.on(events.sync_msg, _syncMessagesHandler)
-        socket.on(events.sync_user_info, _syncUserInfoHandler)
-        socket.on(events.receive_msg, _receiveHandler)
-
-        return () => {
-            socket.off(events.sync_msg, _syncMessagesHandler)
-            socket.off(events.sync_user_info, _syncUserInfoHandler)
-            socket.off(events.receive_msg, _receiveHandler)
-        }
-    }, [])
+    const [socket] = useMessengerSocket({
+        token: userData.token,
+        onSync
+    });
 
     return (
         <div className="App">
             <div>
-                Messanger
+                Messanger for
             </div>
-
-            <div>
-                username: {user.username || '-'}
-            </div>
+            {/*<div>*/}
+            {/*    username: {user.username || '-'}*/}
+            {/*</div>*/}
 
             <div className="message_container">
-                {
-                    messagesList.map(({ id, message }, index) => {
-                        return <span key={id} className="message_row">
-                                <span> sender: {id} :=> </span>
-                                <span> {message} </span>
-                            </span>
-                    })
-                }
+                {/*{*/}
+                {/*    messagesList.map(({ id, message }, index) => {*/}
+                {/*        return <span key={id} className="message_row">*/}
+                {/*                <span> sender: {id} :=> </span>*/}
+                {/*                <span> {message} </span>*/}
+                {/*            </span>*/}
+                {/*    })*/}
+                {/*}*/}
             </div>
 
             <div className="interaction_container">
@@ -113,12 +46,12 @@ function Chat() {
                         type="text"
                         name="message"
                         placeholder="Message"
-                        value={currentMessage}
-                        onChange={onChange}
-                        onKeyDown={onSubmit}
+                        // value={currentMessage}
+                        // onChange={onChange}
+                        // onKeyDown={onSubmit}
                     />
 
-                    <button name='message' onClick={onSubmit}>
+                    <button name='message'>
                         Send
                     </button>
                 </div>
@@ -128,12 +61,12 @@ function Chat() {
                         type="text"
                         name="room"
                         placeholder="Room"
-                        value={currentRoom}
-                        onChange={onChange}
-                        onKeyDown={onSubmit}
+                        // value={currentRoom}
+                        // onChange={onChange}
+                        // onKeyDown={onSubmit}
                     />
 
-                    <button name='room' onClick={onSubmit}>
+                    <button name='room'>
                         Join
                     </button>
                 </div>

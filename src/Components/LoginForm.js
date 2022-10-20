@@ -1,43 +1,53 @@
 import React, {useCallback, useState} from "react";
+import Axios from '../http/axios';
 
 const defaultState = {
    username: '',
    password: ''
-}
+};
 
-function LoginForm({setToken}) {
+function LoginForm({setUserData}) {
    const [loginData, setLoginData] = useState(defaultState);
+   const [errorMessage, setErrorMessage] = useState('');
 
    const onChange = useCallback((e) => {
       setLoginData((prevState) => ({
          ...prevState,
          [e.target.name]: e.target.value
-      }))
+      }));
 
       return () => {
          setLoginData(defaultState)
       }
-   }, [])
+   }, []);
 
    const onSubmit = useCallback(async () => {
       try {
-         const response = await fetch('http://localhost:3333/user/login', {
-            method: 'POST',
-            body: {
-               username: loginData.username,
-               password: loginData.password
-            }
-         })
+         setErrorMessage('');
 
-         console.log(response);
+         const body = JSON.stringify({
+            username: loginData.username,
+            password: loginData.password
+         });
+
+         const response = await Axios.post('/user/login', body);
+
+         localStorage.setItem('token', response.data.token);
+
+         setUserData(response.data);
       } catch (e) {
-         console.log(e.message);
+         setErrorMessage(e.response.data.message);
       }
-   }, [loginData])
+   },[loginData]);
+
 
    return (
        <div className="interaction_container">
-          <div className="interaction_container_row">
+          {
+             errorMessage && <span style={{ color: 'red' }}> {errorMessage} </span>
+          }
+
+          <div className="nteraction_container_row">
              <input
                  type="text"
                  name="username"
@@ -62,21 +72,6 @@ function LoginForm({setToken}) {
                 Send
              </button>
           </div>
-
-          {/*<div className="interaction_container_row">*/}
-          {/*   <input*/}
-          {/*       type="text"*/}
-          {/*       name="room"*/}
-          {/*       placeholder="Room"*/}
-          {/*       value={currentRoom}*/}
-          {/*       onChange={onChange}*/}
-          {/*       onKeyDown={onSubmit}*/}
-          {/*   />*/}
-
-          {/*   <button name='room' onClick={onSubmit}>*/}
-          {/*      Join*/}
-          {/*   </button>*/}
-          {/*</div>*/}
        </div>
    )
 }
