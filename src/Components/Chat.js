@@ -1,24 +1,35 @@
-import React, { useCallback, useEffect, useState } from "react";
-import io from 'socket.io-client';
-import useMessengerSocket from '../hooks/useMessengerSocket';
+import React, {useCallback, useEffect, useRef, useState} from "react";
+import Messenger from "../services/messenger";
 
-const events = {
-    send_message: 'send_message',
-    receive_msg: 'receive_msg',
-    sync_msg: 'sync_msg',
-    join_room: 'join_room',
-    sync_user_info: 'sync_user_info'
+const defaultMessage = {
+    receiverId: '',
+    receiverType: '',
+    msg: ''
 };
 
 function Chat({ userData }) {
-    const onSync = useCallback((data) => {
+    const [messageForm, setMessageForm] = useState(defaultMessage);
+
+    const onSync_SOCKET = useCallback((data) => {
         console.log(data);
     }, []);
 
-    const [socket] = useMessengerSocket({
-        token: userData.token,
-        onSync
-    });
+    const { current: messenger } = useRef(new Messenger(userData.token));
+
+    useEffect(() => {
+        messenger.bind(messenger.events.sync_all, onSync_SOCKET)
+    }, []);
+
+    const onChange = useCallback((e) => {
+        setMessageForm(prev => ({
+            ...prev,
+            [e.target.name]: e.target.value,
+        }))
+    }, []);
+
+    const onSend = () => {
+        messenger.send(messageForm)
+    };
 
     return (
         <div className="App">
@@ -44,32 +55,40 @@ function Chat({ userData }) {
                 <div className="interaction_container_row">
                     <input
                         type="text"
-                        name="message"
+                        name="msg"
                         placeholder="Message"
-                        // value={currentMessage}
-                        // onChange={onChange}
-                        // onKeyDown={onSubmit}
+                        value={messageForm.msg}
+                        onChange={onChange}
                     />
-
-                    <button name='message'>
-                        Send
-                    </button>
                 </div>
 
                 <div className="interaction_container_row">
                     <input
                         type="text"
-                        name="room"
-                        placeholder="Room"
-                        // value={currentRoom}
-                        // onChange={onChange}
-                        // onKeyDown={onSubmit}
+                        name="receiverId"
+                        placeholder="Receiver Id"
+                        value={messageForm.receiverId}
+                        onChange={onChange}
                     />
-
-                    <button name='room'>
-                        Join
-                    </button>
                 </div>
+                {/*<div className="interaction_container_row">*/}
+                {/*    <input*/}
+                {/*        type="text"*/}
+                {/*        name="room"*/}
+                {/*        placeholder="Room"*/}
+                {/*        // value={currentRoom}*/}
+                {/*        // onChange={onChange}*/}
+                {/*        // onKeyDown={onSubmit}*/}
+                {/*    />*/}
+
+                {/*    <button name='room'>*/}
+                {/*        Join*/}
+                {/*    </button>*/}
+                {/*</div>*/}
+
+                <button name='message' onClick={onSend}>
+                    Send
+                </button>
             </div>
         </div>
     );
