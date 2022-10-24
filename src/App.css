@@ -1,5 +1,8 @@
 .App {
     text-align: center;
+    display: flex;
+    justify-content: center;
+    background-color: #282c34;
 }
 
 .App-logo {
@@ -35,6 +38,18 @@
     padding: 10px;
     display: flex;
     flex-direction: column;
+    position: relative;
+}
+
+.message_container_inputing {
+    position: absolute;
+    bottom: 0;
+    margin-left: -10px;
+    display: flex;
+}
+
+.message_container_input {
+    width: 300px;
 }
 
 .message_row {
@@ -51,12 +66,65 @@
 
 .interaction_container_row {
     display: flex;
-    justify-content: space-between;
+    justify-content: space-around;
     padding: 10px 0;
 }
 
 button {
     cursor: pointer;
+}
+
+.usersBarContainer {
+    width: 200px;
+    height: 400px;
+    margin-top: 30px;
+    background-color: antiquewhite;
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+}
+
+.message_container_list {
+    height: calc(100% - 20px);
+    display: flex;
+    flex-direction: column;
+    justify-content: end;
+}
+
+.message_container_item_left {
+    display: flex;
+    justify-content: start;
+}
+
+.message_container_item_right {
+    display: flex;
+    justify-content: end;
+}
+
+.message_container_item_inner {
+    margin-top: 10px;
+    padding-left: 15px;
+    padding-right: 15px;
+    background: silver;
+    color: #282c34;
+    font-size: 12px;
+    border-radius: 3px;
+}
+
+.usersBarContainer_item {
+    border: 1px solid black;
+    min-height: 25px;
+    color: black;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-left: 10px;
+    background-color: aliceblue;
+    cursor: pointer;
+}
+
+.usersBarContainer_item_active {
+    background-color: blueviolet !important;
 }
 
 @keyframes App-logo-spin {

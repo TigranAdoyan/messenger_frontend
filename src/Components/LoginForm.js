@@ -1,4 +1,4 @@
-import React, {useCallback, useState} from "react";
+import React, {useCallback, useEffect, useState} from "react";
 import Axios from '../http/axios';
 
 const defaultState = {
@@ -36,18 +36,27 @@ function LoginForm({setUserData}) {
 
          setUserData(response.data);
       } catch (e) {
-         setErrorMessage(e.response.data.message);
-      }
-   },[loginData]);
+         console.log(e);
+         if (e.code === "ERR_NETWORK") {
+            setErrorMessage('unknown error');
+         } else {
+            setErrorMessage(e.response.data.message);
+         }
 
+      }
+   }, [loginData]);
+
+   useEffect(() => {
+      if (loginData.username && loginData.password) {
+         onSubmit();
+      }
+   }, [])
 
    return (
        <div className="interaction_container">
-          {
-             errorMessage && <span style={{ color: 'red' }}> {errorMessage} </span>
-          }
+          <h2> Messenger </h2>
 
-          <div className="nteraction_container_row">
+          <div className="interaction_container_row">
              <input
                  type="text"
                  name="username"
@@ -67,6 +76,11 @@ function LoginForm({setUserData}) {
              />
           </div>
 
+          <div className="interaction_container_row">
+             {
+                 errorMessage && <span style={{color: 'red', fontSize: '12px'}}> {errorMessage} </span>
+             }
+          </div>
           <div className="interaction_container_row">
              <button name='message' onClick={onSubmit}>
                 Send
