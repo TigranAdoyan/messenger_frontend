@@ -4,14 +4,16 @@ import dotenv from 'dotenv';
 dotenv.config();
 
 export const listenEvents = {
-   'server:sync': 'server:sync',
-   'server:session': 'server:session'
+   'sync_app': 'server:sync_app',
+   'send_message': 'server:send_message',
+   'session': 'server:session',
 };
 
 export const emitEvents = {
-   'client:sync': 'client:sync',
-   'client:send_message': 'client:send_message',
-}
+   'sync_app': 'client:sync_app',
+   'connect_to_chat': 'client:connect_to_chat',
+   'send_message': 'client:send_message',
+};
 
 class Messenger {
    constructor() {
@@ -22,7 +24,9 @@ class Messenger {
          authConnect: false,
       });
 
-      this.socket.emit(emitEvents["client:sync"]);
+      this.socket.emit(emitEvents["sync_app"]);
+
+      this.socket.emit(emitEvents["connect_to_chat"]);
 
       this.socket.on('connect', () => {
          console.log('socket connected');
@@ -37,7 +41,7 @@ class Messenger {
          console.log(err)
       });
 
-      this.socket.on(listenEvents["server:session"], (data) => {
+      this.socket.on(listenEvents["session"], (data) => {
          this.socket.auth.sessionID = data.sessionID;
          this.socket.auth.userID = data.userID;
          this.socket.connect();
@@ -47,14 +51,17 @@ class Messenger {
    connect(token) {
       this.socket.auth.token = token;
       this.socket.connect();
-   }
+   };
 
    bind(event, callback) {
-      this.socket.on(listenEvents[event], callback);
+      this.socket.on(event, (data) => {
+         debugger;
+         callback(data)
+      });
    };
 
    sendMessage(data) {
-      this.socket.emit(emitEvents["client:send_message"], {
+      this.socket.emit(emitEvents["send_message"], {
          receiverId: data.receiverId,
          receiverType: data.receiverType,
          msg: data.msg

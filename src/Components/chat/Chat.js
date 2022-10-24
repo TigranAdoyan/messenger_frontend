@@ -4,53 +4,58 @@ import SideBar from "./SideBar";
 
 function Chat({userData}) {
    const [message, setMessage] = useState('');
-   const [chatBarList, setChatBarList] = useState([]);
-   const [activeTab, setActiveTab] = useState(null);
+   const [chatData, setChatData] = useState([]);
+   const [activeTabUserId, setActiveTabUserId] = useState(null);
 
    const onSend = () => {
-      if (message && activeTab)
+      if (message){
          messenger.sendMessage({
-            receiverId: activeTab.id,
-            receiverType: activeTab.type,
+            receiverId: activeTabUserId,
+            receiverType: 'user',
             msg: message
-         })
+         });
 
-      setChatBarList(prev => {
-         return prev.map(item => {
-            if (item.type === activeTab.type && item[item.type].id === activeTab.id) {
-               item.messages.push({
-                  senderId: userData.id,
-                  receiverId: activeTab.id,
-                  receiverType: activeTab.type,
-                  content: {
-                     text: message
-                  }
-               })
-            }
+         setChatData(prev => {
+            return prev.map(item => {
+               if (item.user.id === activeTabUserId) {
+                  item.messages.push({
+                     senderId: userData.id,
+                     receiverId: activeTabUserId,
+                     receiverType: 'user',
+                     content: {
+                        text: message
+                     }
+                  })
+               }
 
-            return item;
-         })
-      });
+               return item;
+            })
+         });
 
-      setMessage('')
+         setMessage('')}
+   };
+
+   const onReceive = (message) => {
+      debugger;
    };
 
    useEffect(() => {
-      messenger.bind(listenEvents["server:sync"], setChatBarList)
+      messenger.bind(listenEvents.sync_app, setChatData);
+      messenger.bind(listenEvents.send_message, onReceive);
    }, []);
 
    useEffect(() => {
       if (userData && userData.token) {
          messenger.connect(userData.token);
       }
-   }, [userData])
+   }, [userData]);
 
    return (
        <div className="App">
           <SideBar
-              list={chatBarList}
-              activeTab={activeTab}
-              setActiveTab={setActiveTab}
+              chatData={chatData}
+              activeTabUserId={activeTabUserId}
+              setActiveTabUserId={setActiveTabUserId}
           />
           <div>
              <div>
@@ -59,20 +64,18 @@ function Chat({userData}) {
              <div className="message_container">
                 <div className="message_container_list">
                    {
-                       activeTab &&
-                       chatBarList.find((item) => {
-                          return item.type === activeTab.type && +item[item.type].id === +activeTab.id
-                       }).messages.map(message => {
-                          const itemClassname = `message_container_item_${+message.senderId === userData.id ? 'right' : 'left'}`;
+                      activeTabUserId &&
+                      chatData.find(({user}) => user.id === activeTabUserId).messages.map(message => {
+                         const itemClassname = `message_container_item_${+message.senderId === userData.id ? 'right' : 'left'}`;
 
-                          return (
-                              <div className={itemClassname}>
-                                        <span className="message_container_item_inner">
-                                            {message.content.text}
-                                        </span>
-                              </div>
-                          )
-                       })}
+                         return (
+                             <div className={itemClassname}>
+                                  <span className="message_container_item_inner">
+                                      {message.content.text}
+                                  </span>
+                             </div>
+                         )
+                      })}
                 </div>
 
                 <div className='message_container_inputing'>
