@@ -36,7 +36,7 @@ function Chat({userData}) {
    };
 
    const onReceive = (message) => {
-      debugger;
+      // debugger;
    };
 
    useEffect(() => {

@@ -55,7 +55,7 @@ class Messenger {
 
    bind(event, callback) {
       this.socket.on(event, (data) => {
-         debugger;
+         // debugger;
          callback(data)
       });
    };
