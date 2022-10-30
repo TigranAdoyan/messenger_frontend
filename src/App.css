@@ -31,16 +31,6 @@
     color: #61dafb;
 }
 
-.message_container {
-    width: 400px;
-    height: 400px;
-    border: 2px solid salmon;
-    padding: 10px;
-    display: flex;
-    flex-direction: column;
-    position: relative;
-}
-
 .message_container_inputing {
     position: absolute;
     bottom: 0;
@@ -84,11 +74,36 @@ button {
     gap: 3px;
 }
 
-.message_container_list {
-    height: calc(100% - 20px);
+.online_status_dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background-color: green;
+    margin-right: 5px;
+}
+
+.offline_status_dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background-color: gray;
+    margin-right: 5px;
+}
+
+.message_container {
+    width: 400px;
+    height: 400px;
+    border: 2px solid salmon;
+    padding: 10px;
     display: flex;
     flex-direction: column;
-    justify-content: end;
+    position: relative;
+}
+
+.message_container_list {
+    height: 380px;
+    padding-right: 10px;
+    overflow-y: scroll;
 }
 
 .message_container_item_left {

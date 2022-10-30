@@ -1,19 +1,17 @@
 import React, {useEffect, useState} from "react";
 
-function SideBar({chatData = [], activeTabUserId, setActiveTabUserId}) {
-    // debugger;
+function SideBar({chats = [], activeTabUserId, setActiveTabUserId}) {
     useEffect(() => {
-        if (chatData.length) {
-            setActiveTabUserId(chatData[0].user.id)
+        if (chats.length) {
+            setActiveTabUserId(chats[0].user.id)
         }
-    }, [chatData]);
+    }, [chats]);
 
     return (
         <div className="usersBarContainer">
             {
-                chatData.map(({user}) => {
+                chats.map(({user}) => {
                     const isActive = activeTabUserId === user.id;
-                    // debugger;
                     const className = `usersBarContainer_item ${isActive ? 'usersBarContainer_item_active' : ''}`;
 
                     return (
@@ -27,7 +25,12 @@ function SideBar({chatData = [], activeTabUserId, setActiveTabUserId}) {
                             }
                             }
                         >
-                       <span style={{fontSize: '15px'}}> {user.username} </span>
+                       <span style={{fontSize: '15px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%'}}>
+                           <span> {user.username} </span>
+                           {
+                               user.isOnline ? <div className="online_status_dot" ></div> : <div className="offline_status_dot" ></div>
+                           }
+                       </span>
                     </span>
                     )
                 })

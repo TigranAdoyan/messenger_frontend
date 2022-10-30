@@ -1,16 +1,19 @@
 import { call, put, takeLatest } from 'redux-saga/effects'
 import Axios from '../../http/axios';
-import { loginRequest, loginSuccess, loginFailure } from './reducer';
+import {
+    loginRequest,
+    loginSuccess,
+    loginFailure,
+    getAuthDataRequest,
+    getAuthDataSuccess,
+    getAuthDataFailure
+} from './reducer';
 
 function* login(action) {
     try {
-        debugger;
-
         const response = yield call(() => {
-            return Axios.post('/users/login', action.payload);
+            return Axios.post('/user/login', action.payload);
         });
-
-        debugger;
 
         localStorage.setItem('token', response.data.token);
 
@@ -24,6 +27,23 @@ function* login(action) {
     }
 }
 
+function* getAuthData() {
+    try {
+        const response = yield call(() => {
+            return Axios.get('/user/auth_data');
+        });
+
+        yield put(getAuthDataSuccess({
+            profileData: response.data,
+        }));
+    } catch (err) {
+        yield put(getAuthDataFailure({
+            message: err.response.data.message
+        }));
+    }
+}
+
 export default function* mySaga() {
     yield takeLatest(loginRequest.type, login);
+    yield takeLatest(getAuthDataRequest.type, getAuthData);
 }

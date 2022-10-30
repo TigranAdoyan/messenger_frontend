@@ -1,15 +1,13 @@
 import {useRef,useEffect} from 'react';
 
-export default function usePreviousList(state) {
-    const ref = useRef();
+export default function usePreviousList(values = []) {
+    const ref = useRef([]);
 
     useEffect(() => {
-        Object.keys(state).forEach(key => {
-            if (ref.current[key] !== state[key]) {
-                ref.current[key] = state[key];
-            }
+        values.forEach((value, index) => {
+           ref.current[index] = value;
         });
-    }, [state]);
+    }, [values]);
 
     return ref.current;
 }

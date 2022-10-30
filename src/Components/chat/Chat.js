@@ -1,26 +1,50 @@
-import React, {useEffect, useState} from "react";
+import React, {useEffect, useRef, useState} from "react";
+import {useSelector} from "react-redux";
 import messenger, {listenEvents} from "../../services/messenger";
+import Messages from "./Messages";
 import SideBar from "./SideBar";
 
-function Chat({userData}) {
+export default function Chat() {
+   const {
+      profileData
+   } = useSelector(({profile}) => profile);
+   const [chats, setChats] = useState([]);
    const [message, setMessage] = useState('');
-   const [chatData, setChatData] = useState([]);
    const [activeTabUserId, setActiveTabUserId] = useState(null);
 
-   const onSend = () => {
-      if (message){
+   function onSend() {
+      if (message) {
+         const tempId = Date.now();
+         const receiverId = activeTabUserId;
+
          messenger.sendMessage({
-            receiverId: activeTabUserId,
+            receiverId,
+            tempId,
             receiverType: 'user',
             msg: message
+         }, (response) => {
+            setChats(prev => prev.map(chat => {
+               if (+chat.user.id === +response.receiverId) {
+                  chat.messages = chat.messages.map(message => {
+                     if (+message.tempId === +response.tempId) {
+                        return response.message;
+                     }
+                     return message;
+                  })
+               }
+               return chat;
+            }))
          });
 
-         setChatData(prev => {
+         setChats(prev => {
             return prev.map(item => {
-               if (item.user.id === activeTabUserId) {
+               if (+item.user.id === +activeTabUserId) {
                   item.messages.push({
-                     senderId: userData.id,
+                     senderId: profileData.id,
                      receiverId: activeTabUserId,
+                     seen: false,
+                     tempId,
+                     pending: true,
                      receiverType: 'user',
                      content: {
                         text: message
@@ -32,28 +56,116 @@ function Chat({userData}) {
             })
          });
 
-         setMessage('')}
-   };
-
-   const onReceive = (message) => {
-      // debugger;
-   };
-
-   useEffect(() => {
-      messenger.bind(listenEvents.sync_app, setChatData);
-      messenger.bind(listenEvents.send_message, onReceive);
-   }, []);
-
-   useEffect(() => {
-      if (userData && userData.token) {
-         messenger.connect(userData.token);
+         setMessage('')
       }
-   }, [userData]);
+   }
+
+   function onFocusIn() {
+      messenger.typingStatusChange({
+         receiverId: activeTabUserId,
+         status: true
+      })
+   }
+
+   function onFocusOut() {
+      messenger.typingStatusChange({
+         receiverId: activeTabUserId,
+         status: false
+      })
+   }
+
+   // Socket events listeners
+   function onReceive(message) {
+      setChats(prev => prev.map((chat) => {
+         if (+chat.user.id === +message.senderId) {
+            chat.messages.push(message)
+         }
+         return chat;
+      }));
+   }
+
+   function onSync(data) {
+      setChats(data);
+   }
+
+   function onSeen(data) {
+      setChats(prev => prev.map(chat => {
+         if (chat.user.id === data.receiverId) {
+            chat.messages = chat.messages.map(message => {
+               if (data.messagesIds.includes(message._id)) {
+                  message.seen = true;
+               }
+               return message;
+            })
+         }
+         return chat;
+      }))
+   }
+
+   function onOnlineStatusChange(data) {
+      setChats(prev => prev.map(chat => {
+         if (+chat.user.id === +data.userId) {
+            chat.user.isOnline = data.status === 'online';
+         }
+         return chat;
+      }))
+   }
+
+   function onTypingStatusChange(data) {
+      setChats(prev => prev.map(chat => {
+         if (+chat.user.id === +data.senderId) {
+            chat.user.isTyping = data.status;
+         }
+
+         return chat;
+      }))
+   }
+
+   useEffect(() => {
+      if (activeTabUserId) {
+         const chat = chats.find(chat => chat.user.id === activeTabUserId);
+         if (chat) {
+            const unseenMessagesIds = chat.messages.filter(({seen, senderId}) => !seen && +senderId === +activeTabUserId).map(({_id}) => _id);
+            if (unseenMessagesIds.length) {
+               // debugger;
+               messenger.seenMessage({
+                  senderId: activeTabUserId,
+                  messagesIds: unseenMessagesIds
+               })
+
+               setChats(prev => prev.map(chat => {
+                  if (chat.user.id === activeTabUserId) {
+                     chat.messages = chat.messages.map(message => {
+                        if (unseenMessagesIds.includes(message._id)) {
+                           message.seen = true;
+                        }
+
+                        return message;
+                     })
+                  }
+
+                  return chat;
+               }))
+            }
+         }
+      }
+   }, [activeTabUserId, chats])
+
+   useEffect(() => {
+      if (profileData && profileData.token) {
+         messenger.connect(profileData.token);
+         messenger.bind(listenEvents.sync_app, onSync);
+         messenger.bind(listenEvents.send_message, onReceive);
+         messenger.bind(listenEvents.seen_message, onSeen)
+         messenger.bind(listenEvents.online_status_change, onOnlineStatusChange)
+         messenger.bind(listenEvents.typing_status_change, onTypingStatusChange)
+      }
+   }, [profileData]);
 
    return (
        <div className="App">
           <SideBar
-              chatData={chatData}
+              chats={chats}
               activeTabUserId={activeTabUserId}
               setActiveTabUserId={setActiveTabUserId}
           />
@@ -62,21 +174,18 @@ function Chat({userData}) {
                 Messenger
              </div>
              <div className="message_container">
-                <div className="message_container_list">
-                   {
-                      activeTabUserId &&
-                      chatData.find(({user}) => user.id === activeTabUserId).messages.map(message => {
-                         const itemClassname = `message_container_item_${+message.senderId === userData.id ? 'right' : 'left'}`;
+                <Messages
+                   activeTabUserId={activeTabUserId}
+                   chats={chats}
+                   profileData={profileData}
+                   message={message}
+                />
 
-                         return (
-                             <div className={itemClassname}>
-                                  <span className="message_container_item_inner">
-                                      {message.content.text}
-                                  </span>
-                             </div>
-                         )
-                      })}
-                </div>
+                {
+                   chats.find(({user}) => +user.id === +activeTabUserId && user.isTyping === true) && (
+                        <span style={{ marginBottom: '15px', fontSize: '10px', marginRight: 'auto' }} > typing... </span>
+                    )
+                }
 
                 <div className='message_container_inputing'>
                    <input
@@ -85,6 +194,8 @@ function Chat({userData}) {
                        className="message_container_input"
                        placeholder="Message"
                        value={message}
+                       onFocus={onFocusIn}
+                       onBlur={onFocusOut}
                        onChange={({target: {value}}) => setMessage(value)}
                    />
 
@@ -97,5 +208,3 @@ function Chat({userData}) {
        </div>
    );
 }
-
-export default Chat;

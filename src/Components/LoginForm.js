@@ -1,24 +1,29 @@
 import React, {useCallback, useEffect, useState} from "react";
 import {useSelector, useDispatch} from 'react-redux';
+import usePreviousList from "../hooks/usePrevious";
 import {loginRequest} from '../redux/profile/reducer';
+import {useNavigate} from "react-router-dom";
 
 const defaultState = {
     username: '',
     password: ''
 };
 
-function LoginForm({setUserData}) {
+function LoginForm() {
     const dispatch = useDispatch();
+    const navigate = useNavigate();
     const {
-        profileData,
         isLoginRequest,
         isLoginSuccess,
-        isLoginFailure,
-        errorMessage: err
+        errorMessage
     } = useSelector(({profile}) => profile);
-    debugger;
     const [loginData, setLoginData] = useState(defaultState);
-    const [errorMessage, setErrorMessage] = useState('');
+
+    const [
+        prevIsLoginRequest,
+    ] = usePreviousList([
+        isLoginRequest
+    ])
 
     const onChange = useCallback((e) => {
         setLoginData((prevState) => ({
@@ -32,19 +37,17 @@ function LoginForm({setUserData}) {
     }, []);
 
     const onSubmit = useCallback(async () => {
-        setErrorMessage('');
-
-        const body = {
+        dispatch(loginRequest({
             username: loginData.username,
             password: loginData.password
-        };
-
-        dispatch(loginRequest(body));
+        }));
     }, [loginData]);
 
     useEffect(() => {
-
-    }, []);
+          if (prevIsLoginRequest && isLoginSuccess) {
+              navigate('/chat')
+          }
+    }, [prevIsLoginRequest, isLoginSuccess]);
 
     return (
         <div className="interaction_container">
