@@ -104,6 +104,9 @@ button {
     height: 380px;
     padding-right: 10px;
     overflow-y: scroll;
+    display: flex;
+    flex-direction: column;
+    justify-content: end;
 }
 
 .message_container_item_left {

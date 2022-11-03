@@ -1,8 +1,8 @@
-import React, {useEffect, useState} from "react";
+import React, {useEffect} from "react";
 
 function SideBar({chats = [], activeTabUserId, setActiveTabUserId}) {
     useEffect(() => {
-        if (chats.length) {
+        if (chats.length && !activeTabUserId) {
             setActiveTabUserId(chats[0].user.id)
         }
     }, [chats]);
@@ -28,7 +28,7 @@ function SideBar({chats = [], activeTabUserId, setActiveTabUserId}) {
                        <span style={{fontSize: '15px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%'}}>
                            <span> {user.username} </span>
                            {
-                               user.isOnline ? <div className="online_status_dot" ></div> : <div className="offline_status_dot" ></div>
+                               user.isOnline ? <div className="online_status_dot" /> : <div className="offline_status_dot" />
                            }
                        </span>
                     </span>

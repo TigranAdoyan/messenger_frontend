@@ -20,13 +20,13 @@ export const counterSlice = createSlice({
             state.errorMessage = '';
         }),
         loginSuccess: ((state, {payload}) => {
-            debugger;
+            // debugger;
             state.isLoginRequest = false;
             state.isLoginSuccess = true;
             state.profileData = payload.profileData;
         }),
         loginFailure: ((state, {payload}) => {
-            debugger;
+            // debugger;
             state.isLoginRequest = false;
             state.isLoginFailure = true;
             state.errorMessage = payload.message;
